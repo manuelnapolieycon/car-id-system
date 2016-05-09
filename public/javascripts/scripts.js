@@ -1,26 +1,26 @@
-var socket = io.connect('http://localhost:3000', { 'forceNew': true });
+var socket = io.connect('http://127.0.0.1:80');
 
-socket.on('messages', function(data) {  
-  document.getElementById('plate1').innerHTML = data;
+$(document).ready(function(){
+  socket.emit('getAllPlates');
+  //genera_tabla();
+});
+
+socket.on('allPlates', function(data) { 
+  $('table').remove();
+  var content = "<table><thead><tr><th>ID</th><th>Confidence</th></tr></thead>"
+  for(i = 0; i < data.size; i++){
+      content += '<tr><td>' +  data.plates[i].id + '</td><td>' +  data.plates[i].confidence + '</td></tr>';
+  }
+  content += "</table>"
+
+  $('#table-container').append(content);
+  $('table').addClass('table table-striped');
+  $('table').attr('id','table');
+  
 })
 
-function render (data) {  
-  var html = data.map(function(elem, index) {
-    return(`<div>
-              <strong>${elem.author}</strong>:
-              <em>${elem.text}</em>
-            </div>`);
-  }).join(" ");
+socket.on('newPlate', function(data) { 
+  $('#table tr:last').after('<tr><td>' + data.id + '</td><td>' + data.confidence + '</td></tr>');
+})
 
-  document.getElementById('messages').innerHTML = html;
-}
-
-function addMessage(e) {  
-  var message = {
-    author: document.getElementById('username').value,
-    text: document.getElementById('texto').value
-  };
-
-  socket.emit('new-message', message);
-  return false;
-}
+//document.getElementById('messages').innerHTML = html;

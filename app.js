@@ -1,12 +1,16 @@
 var express = require('express');
 var path = require('path');
-var favicon = require('serve-favicon');
+//var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
+
+var platesHandler = require( './backend/PlatesHandler.js' );
+var socketHandler = require( './backend/SocketHandler.js' ); 
+var plates = require( './backend/Plates.js' ); 
 
 var app = express();
 
@@ -56,45 +60,7 @@ app.use(function(err, req, res, next) {
   });
 });
 
+socketHandler.init( app, plates);
+platesHandler.init( plates, socketHandler);
+
 module.exports = app;
-
-var bs = require('nodestalker'),
-    client = bs.Client('127.0.0.1:11300'),
-    tube = 'alprd';
-
-client.watch(tube).onSuccess(function(data) {
-
-    function resJob() {
-        client.reserve().onSuccess(function(job) {
-        	json = JSON.parse(job.data);
-        	console.log(json.results[0].plate);
-        	//var messageJson = JSON.parse(job.body);
-            client.deleteJob(job.id).onSuccess(function(del_msg) {
-                console.log('message', del_msg);
-                resJob();
-            });
-        });
-    }
-
-    resJob();
-});
- 
-var server = require('http').Server(app);  
-var io = require('socket.io')(server);
-
-var messages = [{  
-  id: 1,
-  text: "Hola soy un mensaje",
-  author: "Carlos Azaustre"
-}];
-
-io.on('connection', function(socket) {  
-  console.log('Alguien se ha conectado con Sockets');
-  socket.emit('messages', "123");
-
-  socket.on('new-message', function(data) {
-    messages.push(data);
-
-    io.sockets.emit('messages', "123");
-  });
-});
