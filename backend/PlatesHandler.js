@@ -58,7 +58,7 @@ module.exports = {
                     
 
                     if(validate(""+plate)){
-                        if(plates.getLast().id == aux.id){
+                        if(plates.isEmpty() || !(plates.getLast().id == aux.id)){
                             plates.add(aux);
                             socketH.emitNewPlate(aux);
                             console.log("OK - Added: " + plate, ':', confidence);
